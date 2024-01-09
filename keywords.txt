@@ -1,0 +1,35 @@
+#######################################
+# Syntax Coloring Map For SWITCHBUTTON
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SWITCHBUTTON	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+checkButton	KEYWORD2
+getButton	KEYWORD2
+getState	KEYWORD2
+readyForSleep	KEYWORD2
+setDebounceTimeMS	KEYWORD2
+setState	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+IDLE	LITERAL1
+SHORTPRESSED	LITERAL1
+LONGPRESSED	LITERAL1
+LONGPRESSEDRELEASED	LITERAL1
+INPROGRESS	LITERAL1
+MISSED	LITERAL1
+DEBOUNCING	LITERAL1
+RELEASED	LITERAL1
+PRESSED	LITERAL1
+UNKNOWN	LITERAL1
