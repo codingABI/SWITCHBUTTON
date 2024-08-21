@@ -7,19 +7,19 @@
  * - detects and differentiates between short and long button presses
  * - supports debouncing
  * - works nonblocking and without delay()
- * - supports sleep modes (see example "pinChangeInterruptPowerSave")
+ * - supports sleep modes (see example "sleepmode")
  *
  * Home: https://github.com/codingABI/SWITCHBUTTON
  *
  * @author codingABI https://github.com/codingABI/
  * @copyright CC0
  * @file SWITCHBUTTON.h
- * @version 1.0.0
+ * @version 1.0.1
  */
 #pragma once
 
 /** Library version */
-#define SWITCHBUTTON_VERSION "1.0.0"
+#define SWITCHBUTTON_VERSION "1.0.1"
 
 #include <arduino.h>
 
@@ -44,6 +44,7 @@ class SWITCHBUTTON {
       MISSED, /**< Incomplete long press was detected */
       DEBOUNCING /**< Button is blocked for debouncing */
     };
+
     /** Button physical states */
     enum buttonPhysicalStates
     {
@@ -63,13 +64,13 @@ class SWITCHBUTTON {
       m_sw_pin = sw_pin; // Digital input pin for the button
       m_inputPulledUp = inputPulledUp; // Has button a pullup resistor (LOW=pressed,HIGH=released)?
       m_debounceTimeMS = DEBOUNCEMS;
-      m_state = UNKNOWN;
-      m_lastState = UNKNOWN;
-      m_lastLongPressedMS = 0;
-      m_lastButtonStartMS = 0;
-      m_lastButtonChangeMS=0;
-      m_waitingRelease = false;
-      m_pendingLongPressed = false;
+      mv_state = UNKNOWN;
+      mv_lastState = UNKNOWN;
+      mv_lastLongPressedMS = 0;
+      mv_lastButtonStartMS = 0;
+      mv_lastButtonChangeMS=0;
+      mv_waitingRelease = false;
+      mv_pendingLongPressed = false;
     }
 
     /**@brief
@@ -90,39 +91,39 @@ class SWITCHBUTTON {
     {
       unsigned long currentMillis = millis();
       // When first check or after debounce time
-      if ((m_lastState == UNKNOWN)
-        || (currentMillis-m_lastButtonChangeMS > m_debounceTimeMS)) {
-        m_lastButtonChangeMS = currentMillis - m_debounceTimeMS - 1; // Prevent overrun
-        if ((m_state==RELEASED) && (m_lastState == UNKNOWN)) { // Init
-          m_lastState = m_state;
+      if ((mv_lastState == UNKNOWN)
+        || (currentMillis-mv_lastButtonChangeMS > m_debounceTimeMS)) {
+        mv_lastButtonChangeMS = currentMillis - m_debounceTimeMS - 1; // Prevent overrun
+        if ((mv_state==RELEASED) && (mv_lastState == UNKNOWN)) { // Init
+          mv_lastState = mv_state;
           return IDLE;
         }
-        if (m_state != m_lastState) { // Button state has changed
-          if (m_state == PRESSED) { // Rising edge
-            m_waitingRelease = true;
-            m_lastButtonStartMS = currentMillis;
+        if (mv_state != mv_lastState) { // Button state has changed
+          if (mv_state == PRESSED) { // Rising edge
+            mv_waitingRelease = true;
+            mv_lastButtonStartMS = currentMillis;
           }
-          m_lastButtonChangeMS = currentMillis;
-          m_lastState = m_state;
+          mv_lastButtonChangeMS = currentMillis;
+          mv_lastState = mv_state;
         }
-        if (m_state == PRESSED) { // Button is pressed
-          if (m_waitingRelease) {
-            if ((currentMillis - m_lastButtonStartMS > LONGPRESSEDMS)
-              && (currentMillis-m_lastLongPressedMS > LONGPRESSEDDEADTIMEMS)) {
-              m_lastButtonStartMS = currentMillis - LONGPRESSEDMS - 1; // Prevent overrun
-              m_lastLongPressedMS = currentMillis;
-              m_pendingLongPressed = true;
+        if (mv_state == PRESSED) { // Button is pressed
+          if (mv_waitingRelease) {
+            if ((currentMillis - mv_lastButtonStartMS > LONGPRESSEDMS)
+              && (currentMillis-mv_lastLongPressedMS > LONGPRESSEDDEADTIMEMS)) {
+              mv_lastButtonStartMS = currentMillis - LONGPRESSEDMS - 1; // Prevent overrun
+              mv_lastLongPressedMS = currentMillis;
+              mv_pendingLongPressed = true;
               return LONGPRESSED;
             } else return INPROGRESS;
           } else return INPROGRESS;
         } else { // Button is released
-          if (m_waitingRelease) {
-            m_waitingRelease = false;
-            if (currentMillis - m_lastButtonStartMS <= LONGPRESSEDMS){
+          if (mv_waitingRelease) {
+            mv_waitingRelease = false;
+            if (currentMillis - mv_lastButtonStartMS <= LONGPRESSEDMS){
               return SHORTPRESSED;
             } else {
-              if (m_pendingLongPressed) {
-                m_pendingLongPressed = false;
+              if (mv_pendingLongPressed) {
+                mv_pendingLongPressed = false;
                 return LONGPRESSEDRELEASED;
               }
               return MISSED; // Too long gap between rising edge and button release
@@ -166,7 +167,7 @@ class SWITCHBUTTON {
      */
     byte getState()
     {
-      return m_state;
+      return mv_state;
     }
 
     /**@brief
@@ -202,18 +203,19 @@ class SWITCHBUTTON {
      */
     void setState(byte state)
     {
-      if (state == PRESSED ) m_state = PRESSED;
-      if (state == RELEASED ) m_state = RELEASED;
+      if (state == PRESSED ) mv_state = PRESSED;
+      if (state == RELEASED ) mv_state = RELEASED;
     }
+
   private:
     byte m_sw_pin;
     bool m_inputPulledUp;
     unsigned int m_debounceTimeMS;
-    unsigned long m_lastLongPressedMS;
-    unsigned long m_lastButtonStartMS;
-    unsigned long m_lastButtonChangeMS;
-    byte m_state;
-    byte m_lastState;
-    bool m_waitingRelease;
-    bool m_pendingLongPressed;
+    volatile unsigned long mv_lastLongPressedMS;
+    volatile unsigned long mv_lastButtonStartMS;
+    volatile unsigned long mv_lastButtonChangeMS;
+    volatile byte mv_state;
+    volatile byte mv_lastState;
+    volatile bool mv_waitingRelease;
+    volatile bool mv_pendingLongPressed;
 };

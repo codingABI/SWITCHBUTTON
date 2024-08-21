@@ -9,4 +9,5 @@ Examples how to use the library
 - [simple](examples/simple/simple.ino)
 - [buttonStates](examples/buttonStates/buttonStates.ino)
 - [sleepmode](examples/sleepmode/sleepmode.ino)
+- [pinChangeInterrupt](examples/pinChangeInterrupt/pinChangeInterrupt.ino)
 
